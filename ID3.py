@@ -31,7 +31,7 @@ def ID3helper(examples, default, attributesRemaining):
 
     return leafNode
 
-  ##choose best node to split on
+  ##choose best node to split on (need to implement)
   splitAttribute = attributesRemaining[0]
   attributesRemaining.remove(splitAttribute)
 
@@ -40,7 +40,7 @@ def ID3helper(examples, default, attributesRemaining):
   splitNode.label = splitAttribute
   dataSplit = split_tree(examples, splitAttribute)
 
-  #if this attribute hass only one value, then choose most common class
+  #if this attribute hass only one value, then don't actually split on this node
   if (len(dataSplit.keys()) == 1):
     return ID3helper(dataSplit[dataSplit.keys()[0]], default, attributesRemaining)
 
@@ -104,7 +104,7 @@ def test(node, examples):
     expectedClass = evaluate(node, ex)
     if (expectedClass == ex['Class']):
       count_correct += 1
-      
+
   return float(count_correct)/len(examples)
   '''
   Takes in a trained tree and a test set of examples.  Returns the accuracy (fraction
