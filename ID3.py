@@ -32,7 +32,7 @@ def ID3helper(examples, default, attributesRemaining):
     return leafNode
 
   ##choose best node to split on (need to implement)
-  splitAttribute = attributesRemaining[0]
+  splitAttribute = choose_split_at(examples, attributesRemaining, class_counts.keys())
   attributesRemaining.remove(splitAttribute)
 
   splitNode = Node()
@@ -40,13 +40,13 @@ def ID3helper(examples, default, attributesRemaining):
   splitNode.label = splitAttribute
   dataSplit = split_tree(examples, splitAttribute)
 
-  #if this attribute hass only one value, then don't actually split on this node
+  #if this attribute has only one value, then don't actually split on this node
   if (len(dataSplit.keys()) == 1):
     return ID3helper(dataSplit[dataSplit.keys()[0]], default, attributesRemaining)
 
   for value in dataSplit.keys():
-    print(value)
-    print(dataSplit[value])
+    #print(value)
+    #print(dataSplit[value])
     child = ID3helper(dataSplit[value], default, attributesRemaining)
     splitNode.children[value] = child;
 
@@ -58,13 +58,14 @@ def recurse_tree(node):
     print(node.label)
 
   else:
-    print("Attribute: ", node.label)
+    print("ATTRIBUTE: ", node.label)
     for value in node.children.keys():
+      print("Attribute: ", node.label)
       print("Traversing Value: ", value)
       recurse_tree(node.children[value])
 
 def split_tree(examples, attribute):
-  print("Splitting")
+  #print("Splitting")
   attribute_values = dict()
   for entry in examples:
     if (entry[attribute] in attribute_values):
@@ -73,6 +74,59 @@ def split_tree(examples, attribute):
       attribute_values[entry[attribute]] = [entry]
 
   return attribute_values
+
+def choose_split_at(examples, attributesRemaining, classes):
+  best_at = ''
+  best_gain = float("inf")
+  for at in attributesRemaining:
+    ig = info_gain(examples, at, classes)
+    if ig < best_gain:
+      best_gain = ig
+      best_at = at
+
+  return best_at
+
+def info_gain(examples, attr, classes):
+  attr_vals = {}
+
+  for x in examples:
+    val = x[attr];   # get the attribute in this row     EX: get the value of the Outlook attribute
+    if not attr_vals.has_key(val):     # if we've never seen this attribute value before
+      attr_vals[val] = {}
+      for c in classes:      # create new list of class counts i.e. for this attribute value, how many times have we seen each class in the same row
+        attr_vals[val][c] = 0
+
+    curr_class = x["Class"]
+    attr_vals[val][curr_class] += 1   # increment the count of the class of this row for this attribute value
+
+  if attr_vals.has_key('?'):
+    missing = sum(attr_vals['?'].values())
+    del(attr_vals['?'])
+
+  entropies = []
+  totals = []
+  for val, clses in attr_vals.iteritems():
+    e, t = entropy(clses.values())
+    entropies.append(e)
+    totals.append(t)
+
+  sum_total = sum(totals)
+  infogain = 0
+  for i in range(0,len(entropies)):
+    infogain -= (totals[i]/float(sum_total)) * entropies[i]
+
+  return infogain
+
+
+def entropy(occurrences):
+  entropy = 0
+  total = sum(occurrences)
+  for o in occurrences:
+    if o != 0: 
+      p = o/float(total)
+      entropy -= p * math.log(p, 2.0)
+
+  return entropy, total
 
   '''
   Takes in an array of examples, and returns a tree (an instance of Node) 
@@ -113,7 +167,7 @@ def test(node, examples):
 
 
 def evaluate(node, example):
-  print(example)
+  #print(example)
   if (node.isLeaf):
     return node.label
 
@@ -126,3 +180,4 @@ def evaluate(node, example):
   Takes in a tree and one example.  Returns the Class value that the tree
   assigns to the example.
   '''
+
