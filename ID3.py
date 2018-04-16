@@ -145,8 +145,52 @@ def countClass(examples):
 
   return class_counts
 
+def printTree(node):
+  if (node.isLeaf):
+    print 'IS LEAF, returns ', node.label
+
+  for value in node.children:
+    print 'Attribute: ', node.label
+    print 'Value: ', value
+    printTree(node.children[value])
 
 def prune(node, examples):
+  if (node.isLeaf):
+    return node
+
+  prunedNode = Node()
+  prunedNode.isLeaf = True
+  max_count = 0
+
+  class_counts = countClass(examples)
+
+  for classVal in class_counts.keys():
+    if (class_counts[classVal] > max_count):
+      prunedNode.label = classVal
+
+  unpruned_accuracy = test(node,examples)
+  pruned_accuracy = test(prunedNode,examples)
+
+  print 'Pruned - ', pruned_accuracy, ', Unpruned - ', unpruned_accuracy
+
+  if (pruned_accuracy > unpruned_accuracy):
+    print "PRUNED"
+    return prunedNode
+  else:
+    print "DIDNT PRUNE"
+    examplesSplit = split_tree(examples, node.label)
+
+    for value in node.children:
+      childNode = node.children[value]
+
+      #we have no more data to test this
+      if (value in examplesSplit):
+        print "Out of Data"
+        node.children[value] = prune(childNode, examplesSplit[value])
+
+    return node
+
+
   '''
   Takes in a trained tree and a validation set of examples.  Prunes nodes in order
   to improve accuracy on the validation data; the precise pruning strategy is up to you.
@@ -158,6 +202,10 @@ def test(node, examples):
     expectedClass = evaluate(node, ex)
     if (expectedClass == ex['Class']):
       count_correct += 1
+    else:
+      if (expectedClass == -1000):
+        print "Never Seen Class"
+
 
   return float(count_correct)/len(examples)
   '''
@@ -173,7 +221,16 @@ def evaluate(node, example):
 
   splitAttribute = node.label
   splitValue = example[splitAttribute]
-  nextNode = node.children[splitValue]
+
+  #nextNode = node.children[splitValue]
+
+  #remove the following stuff once we've resolved new value stuff 
+  if splitValue in node.children:
+    nextNode = node.children[splitValue]
+  else:
+    print "NEVER SEEN CLASS"
+    return -1000;
+  #keep below here
 
   return evaluate(nextNode, example)
   '''
