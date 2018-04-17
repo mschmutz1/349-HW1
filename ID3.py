@@ -1,6 +1,7 @@
 from node import Node
 import math
 
+
 def ID3(examples, default):
   attributeList =  examples[0].keys()
   attributeList.remove('Class')
@@ -222,9 +223,6 @@ def test(node, examples):
     expectedClass = evaluate(node, ex)
     if (expectedClass == ex['Class']):
       count_correct += 1
-    else:
-      if (expectedClass == -1000):
-        print "Never Seen Class"
 
   return float(count_correct)/len(examples)
   '''
@@ -249,8 +247,8 @@ def evaluate(node, example):
   if splitValue in node.children:
     nextNode = node.children[splitValue]
   else:
-    print "NEVER SEEN CLASS"
-    return -1000;
+    print "NEVER SEEN VALUE"
+    nextNode = node.children[node.defaultAssignment]
   #keep below here
 
   return evaluate(nextNode, example)

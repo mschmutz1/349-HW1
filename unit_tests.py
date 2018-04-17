@@ -1,4 +1,6 @@
 import ID3, parse, random
+import numpy
+import matplotlib.pyplot as plt
 
 def testID3AndEvaluate():
   data = [dict(a=1, b=0, Class=1), dict(a=1, b=1, Class=0), dict(a=0, b=1, Class=0)]
@@ -56,15 +58,15 @@ def testID3AndTest():
     print "testID3andTest failed -- no tree returned."
 
 # inFile - string location of the house data file
-def testPruningOnHouseData(inFile):
+def testPruningOnHouseData(inFile,testSize):
   withPruning = []
   withoutPruning = []
   data = parse.parse(inFile)
   for i in range(100):
     random.shuffle(data)
-    train = data[:len(data)/2]
-    valid = data[len(data)/2:3*len(data)/4]
-    test = data[3*len(data)/4:]
+    train = data[:2*testSize/3]
+    valid = data[2*testSize/3:testSize]
+    test = data[testSize:]
   
     tree = ID3.ID3(train, 'democrat')
     acc = ID3.test(tree, train)
@@ -89,8 +91,21 @@ def testPruningOnHouseData(inFile):
   print withPruning
   print withoutPruning
   print "average with pruning",sum(withPruning)/len(withPruning)," without: ",sum(withoutPruning)/len(withoutPruning)
+  return [sum(withPruning)/len(withPruning), sum(withoutPruning)/len(withoutPruning)]
 
 
-testID3AndTest()
-testID3AndEvaluate()
+#code to getnerate plot pruning v non pruning plots
+test_sizes = numpy.arange(10,300,10)
+withPruning = []
+withoutPruning = []
+for size in test_sizes:
+  accuracies = testPruningOnHouseData('house_votes_84.data',size)
+  withPruning.append(accuracies[0])
+  withoutPruning.append(accuracies[1])
+
+plt.plot(test_sizes, withPruning, 'r--', test_sizes, withoutPruning)
+plt.ylabel('Accuracies w/ and w/o Pruning')
+plt.xlabel('# of Examples')
+plt.show()
+
   
