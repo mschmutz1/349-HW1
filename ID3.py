@@ -33,21 +33,22 @@ def ID3helper(examples, default, attributesRemaining):
 
   ##choose best node to split on (need to implement)
   splitAttribute = choose_split_at(examples, attributesRemaining, class_counts.keys())
-  attributesRemaining.remove(splitAttribute)
+  newAttrRemaining = list(attributesRemaining)
+  newAttrRemaining.remove(splitAttribute)
+  assignMissing(examples, splitAttribute)
 
   splitNode = Node()
   splitNode.isLeaf = False
   splitNode.label = splitAttribute
   dataSplit = split_tree(examples, splitAttribute)
-
   #if this attribute has only one value, then don't actually split on this node
+
+
   if (len(dataSplit.keys()) == 1):
-    return ID3helper(dataSplit[dataSplit.keys()[0]], default, attributesRemaining)
+    return ID3helper(dataSplit[dataSplit.keys()[0]], default, newAttrRemaining)
 
   for value in dataSplit.keys():
-    #print(value)
-    #print(dataSplit[value])
-    child = ID3helper(dataSplit[value], default, attributesRemaining)
+    child = ID3helper(dataSplit[value], default, newAttrRemaining)
     splitNode.children[value] = child;
 
   return splitNode
@@ -113,7 +114,8 @@ def info_gain(examples, attr, classes):
   sum_total = sum(totals)
   infogain = 0
   for i in range(0,len(entropies)):
-    infogain -= (totals[i]/float(sum_total)) * entropies[i]
+    infogain 
+    += (totals[i]/float(sum_total)) * entropies[i]
 
   return infogain
 
@@ -134,7 +136,27 @@ def entropy(occurrences):
   and the target class variable is a special attribute with the name "Class".
   Any missing attributes are denoted with a value of "?"
   '''
+def assignMissing(examples, attr):
+  attr_counts = {}
+  for x in examples:
+    val = x[attr]; 
+    if val != '?': 
+      if attr_counts.has_key(val):     
+        attr_counts[val] += 1
+      else:
+        attr_counts[val] = 1
 
+  best_attr = ''
+  max_count = float("-inf")
+  for attribute, count in attr_counts.iteritems():
+    if count > max_count:
+      best_attr = attribute
+      max_count = count
+
+  for m in examples:
+    if m[attr] == '?':
+      m[attr] = best_attr
+      
 def countClass(examples):
   class_counts = dict()
   for entry in examples:
