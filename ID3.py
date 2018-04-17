@@ -35,11 +35,12 @@ def ID3helper(examples, default, attributesRemaining):
   splitAttribute = choose_split_at(examples, attributesRemaining, class_counts.keys())
   newAttrRemaining = list(attributesRemaining)
   newAttrRemaining.remove(splitAttribute)
-  assignMissing(examples, splitAttribute)
+  default = assignMissing(examples, splitAttribute)
 
   splitNode = Node()
   splitNode.isLeaf = False
   splitNode.label = splitAttribute
+  splitNode.defaultAssignment = default
   dataSplit = split_tree(examples, splitAttribute)
   #if this attribute has only one value, then don't actually split on this node
 
@@ -59,10 +60,7 @@ def recurse_tree(node):
     print(node.label)
 
   else:
-    print("ATTRIBUTE: ", node.label)
     for value in node.children.keys():
-      print("Attribute: ", node.label)
-      print("Traversing Value: ", value)
       recurse_tree(node.children[value])
 
 def split_tree(examples, attribute):
@@ -111,11 +109,11 @@ def info_gain(examples, attr, classes):
     entropies.append(e)
     totals.append(t)
 
+
   sum_total = sum(totals)
   infogain = 0
   for i in range(0,len(entropies)):
-    infogain 
-    += (totals[i]/float(sum_total)) * entropies[i]
+    infogain += (totals[i]/float(sum_total)) * entropies[i]
 
   return infogain
 
@@ -136,6 +134,7 @@ def entropy(occurrences):
   and the target class variable is a special attribute with the name "Class".
   Any missing attributes are denoted with a value of "?"
   '''
+
 def assignMissing(examples, attr):
   attr_counts = {}
   for x in examples:
@@ -156,7 +155,11 @@ def assignMissing(examples, attr):
   for m in examples:
     if m[attr] == '?':
       m[attr] = best_attr
-      
+
+  return best_attr
+
+
+
 def countClass(examples):
   class_counts = dict()
   for entry in examples:
@@ -166,6 +169,7 @@ def countClass(examples):
       class_counts[entry['Class']] = 1
 
   return class_counts
+
 
 def printTree(node):
   if (node.isLeaf):
@@ -212,12 +216,6 @@ def prune(node, examples):
 
     return node
 
-
-  '''
-  Takes in a trained tree and a validation set of examples.  Prunes nodes in order
-  to improve accuracy on the validation data; the precise pruning strategy is up to you.
-  '''
-
 def test(node, examples):
   count_correct = 0
   for ex in examples:
@@ -227,7 +225,6 @@ def test(node, examples):
     else:
       if (expectedClass == -1000):
         print "Never Seen Class"
-
 
   return float(count_correct)/len(examples)
   '''
@@ -243,6 +240,8 @@ def evaluate(node, example):
 
   splitAttribute = node.label
   splitValue = example[splitAttribute]
+  if splitValue == '?':
+    splitValue = node.defaultAssignment
 
   #nextNode = node.children[splitValue]
 

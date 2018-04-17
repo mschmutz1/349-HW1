@@ -61,7 +61,6 @@ def mini_grader():
 
   try:
     tree = ID3.ID3(data, 0)
-    ID3.recurse_tree(tree)
     if tree != None:
       ans = ID3.evaluate(tree, dict(a=1, b=1, c=1))
       if ans != 1:
@@ -77,8 +76,6 @@ def mini_grader():
       print "ID3 test 4 failed -- no tree returned"
   except Exception:
     print 'ID3 test 4 failed runtime error'
-    print traceback.format_exc()
-    print sys.exc_info()[0]
 
 if __name__ == "__main__":
     mini_grader()
